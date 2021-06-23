@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+"""
+Main driver node for the OnRobot RG2-FT gripper
+"""

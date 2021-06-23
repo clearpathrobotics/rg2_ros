@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="ip_address"      default="192.168.1.1" />
+
+  <node name="rg2_ft_node" pkg="rg2_ft_driver" type="rg2_ft_node">
+    <param name="ip_address" value="$(arg ip_address)" />
+  </node>
+</launch>

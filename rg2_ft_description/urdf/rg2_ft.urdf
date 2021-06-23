@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find rg2_ft_description)/urdf/include/rg2_ft_finger.urdf" />
+
+  <xacro:macro name="rg2_ft" params="name parent *origin">
+
+    <link name="${name}_hand_link">
+      <visual>
+        <geometry>
+          <box size="0.10 0.065 0.049" />
+        </geometry>
+        <origin xyz="0.05 0 0" rpy="0 0 0" />
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+
+    <joint name="${name}_base_link" type="fixed">
+      <parent link="${parent}" />
+      <child link="${name}_hand_link" />
+      <xacro:insert_block name="origin" />
+    </joint>
+
+    <xacro:rg2_ft_finger prefix="finger_1" parent="${name}_hand_link">
+      <origin xyz="0.1 0.018 0" rpy="0 0 0" />
+    </xacro:rg2_ft_finger>
+    <xacro:rg2_ft_finger prefix="finger_2" parent="${name}_hand_link">
+      <origin xyz="0.1 -0.018 0" rpy="3.14159 0 0" />
+    </xacro:rg2_ft_finger>
+  </xacro:macro>
+</robot>

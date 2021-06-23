@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="rg2_ft_finger" params="prefix parent *origin">
+
+    <link name="${prefix}_finger_link_1">
+      <!--
+        The first finger segment
+      -->
+      <visual>
+        <geometry>
+          <box size="0.037 0.027 0.027" />
+        </geometry>
+        <origin xyz="${0.037/2} 0 0" rpy="0 0 0" />
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+
+    <link name="${prefix}_finger_link_2">
+      <!--
+        The second finger segment
+      -->
+      <visual>
+        <geometry>
+          <box size="0.051 0.010 0.018" />
+        </geometry>
+        <origin xyz="${0.051/2} 0 0" rpy="0 0 0" />
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+
+    <link name="${prefix}_fingertip">
+      <!--
+        The fingertip, fixed to the second link
+      -->
+      <visual>
+        <geometry>
+          <cylinder length="0.018" radius="0.014" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 1.5707963267948966 0" />
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+
+
+    <joint name="${prefix}_finger_joint_1" type="revolute">
+      <axis xyz="0 0 1" />
+      <limit lower="0.0" upper="1.0" velocity="2.0" effort="1000" />
+      <parent link="${parent}" />
+      <child link="${prefix}_finger_link_1" />
+      <xacro:insert_block name="origin" />
+    </joint>
+
+    <joint name="${prefix}_finger_joint_2" type="revolute">
+      <axis xyz="0 0 1" />
+      <limit lower="-1.5707963267948966" upper="0" velocity="2.0" effort="1000" />
+      <parent link="${prefix}_finger_link_1" />
+      <child link="${prefix}_finger_link_2" />
+      <origin xyz="0.037 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="${prefix}_fingertip_joint" type="fixed">
+      <parent link="${prefix}_finger_link_2" />
+      <child link="${prefix}_fingertip" />
+      <origin xyz="0.05 -0.009 0" rpy="0 0 -1.5707963267948966" />
+    </joint>
+
+  </xacro:macro>
+</robot>

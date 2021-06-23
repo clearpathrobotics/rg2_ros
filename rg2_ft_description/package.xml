@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rg2_ft_description</name>
+  <version>0.0.0</version>
+  <description>URDF macros for adding the OnRobot RG2-FT gripper to a robot</description>
+
+  <maintainer email="civerachb@clearpathrobotics.com">Chris Iverach-Brereton</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <export>
+  </export>
+</package>

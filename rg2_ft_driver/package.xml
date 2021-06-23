@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rg2_ft_driver</name>
+  <version>0.0.0</version>
+  <description>Driver and launch files for the OnRobot RG2-FT gripper</description>
+
+  <maintainer email="civerachb@clearpathrobotics.com">Chris Iverach-Brereton</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roslaunch</build_depend>
+
+  <exec_depend>pymodbus</exec_depend>
+  <exec_depend>rg2_ft_description</exec_depend>
+
+  <export>
+  </export>
+</package>
