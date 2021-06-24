@@ -40,7 +40,7 @@
         <geometry>
           <cylinder length="0.0195" radius="0.010" />
         </geometry>
-        <origin xyz="0 0 ${0.0195/2}" rpy="0 0 0" />
+        <origin xyz="0 0 -${0.0195/2}" rpy="0 0 0" />
         <material name="white">
           <color rgba="1 1 1 1" />
         </material>
@@ -67,7 +67,7 @@
     <joint name="${prefix}_fingertip_joint" type="fixed">
       <parent link="${prefix}_finger_link_2" />
       <child link="${prefix}_fingertip" />
-      <origin xyz="0.023 -0.012 0" rpy="-1.5707963267948966 0 0" />
+      <origin xyz="0.023 -0.012 0" rpy="0 1.5707963267948966 -1.5707963267948966" />
     </joint>
 
   </xacro:macro>
