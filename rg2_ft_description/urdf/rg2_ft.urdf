@@ -4,29 +4,65 @@
 
   <xacro:macro name="rg2_ft" params="name parent *origin">
 
-    <link name="${name}_hand_link">
+    <link name="${name}_base_link">
       <visual>
         <geometry>
-          <box size="0.10 0.065 0.049" />
+          <cylinder radius="0.0355" length="0.031" />
         </geometry>
-        <origin xyz="0.05 0 0" rpy="0 0 0" />
+        <origin xyz="${0.0355/2} 0 0" rpy="0 1.5707963267948966 0" />
         <material name="white">
           <color rgba="1 1 1 1" />
         </material>
       </visual>
     </link>
 
-    <joint name="${name}_base_link" type="fixed">
+    <link name="${name}_hand_link">
+      <visual>
+        <geometry>
+          <box size="0.118 0.065 0.031" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+
+    <link name="${name}_connectors_link">
+      <visual>
+        <geometry>
+          <box size="0.103 0.046 0.0125" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+
+    <joint name="${name}_base_joint" type="fixed">
       <parent link="${parent}" />
-      <child link="${name}_hand_link" />
+      <child link="${name}_base_link" />
       <xacro:insert_block name="origin" />
     </joint>
 
-    <xacro:rg2_ft_finger prefix="finger_1" parent="${name}_hand_link">
-      <origin xyz="0.1 0.018 0" rpy="0 0 0" />
+    <joint name="${name}_hand_joint" type="fixed">
+      <parent link="${name}_base_link" />
+      <child link="${name}_hand_link" />
+      <origin xyz="${0.031+0.118/2} 0 0" rpy="0 0 0" />
+    </joint>
+
+    <joint name="${name}_connectors_joint" type="fixed">
+      <parent link="${name}_hand_link" />
+      <child link="${name}_connectors_link" />
+      <origin xyz="0 0 ${0.031/2 + 0.0125/2}" rpy="0 0 0" />
+    </joint>
+
+    <xacro:rg2_ft_finger prefix="left" parent="${name}_base_link">
+      <origin xyz="0.138 0.012 0" rpy="0 0 0" />
     </xacro:rg2_ft_finger>
-    <xacro:rg2_ft_finger prefix="finger_2" parent="${name}_hand_link">
-      <origin xyz="0.1 -0.018 0" rpy="3.14159 0 0" />
+    <xacro:rg2_ft_finger prefix="right" parent="${name}_base_link">
+      <origin xyz="0.138 -0.012 0" rpy="3.14159 0 0" />
     </xacro:rg2_ft_finger>
   </xacro:macro>
 </robot>

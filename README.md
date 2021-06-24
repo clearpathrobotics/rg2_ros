@@ -16,6 +16,9 @@ rg2_ft_description
 
 This package contains the URDF and supporting files for representing the gripper on a robot.
 
+This package contains meshes for the RG2 gripper authored by Sharath Jotawar as part of the now-archived
+ur10_rg2_ros package, available here: https://github.com/sharathrjtr/ur10_rg2_ros
+
 
 rg2_ft_driver
 --------------

@@ -3,6 +3,6 @@ project(rg2_ft_description)
 
 find_package(catkin REQUIRED)
 
-install(DIRECTORY urdf
+install(DIRECTORY meshes urdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
