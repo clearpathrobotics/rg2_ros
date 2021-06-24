@@ -9,10 +9,11 @@ project(rg2_driver)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED)
 
+catkin_package()
+
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(DIRECTORY scripts
-  DESTINATION ${CATKIN_PACKAGE_BINARY_DESTINATION}
-)
+install(PROGRAMS scripts/rg2_ft_node
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

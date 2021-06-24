@@ -2,3 +2,36 @@
 """
 Main driver node for the OnRobot RG2-FT gripper
 """
+
+import rospy
+
+from std_msgs.msg import Header
+from sensor_msgs.msg import JointState
+
+class RG2_FT_Node:
+    def __init__(self):
+        self.load_rosparams()
+
+    def load_rosparams(self):
+        self.gripper_name = rospy.get_param('~name', 'gripper')
+        self.gripepr_ip = rospy.get_param('~ip_address', '192.168.1.1')
+
+        self.base_link_name = '{0}_base_link'.format(self.gripper_name)
+        self.joint_names = [
+            '{0}_left_finger_joint_1'.format(self.gripper_name),
+            '{0}_left_finger_joint_2'.format(self.gripper_name),
+            '{0}_right_finger_joint_1'.format(self.gripper_name),
+            '{0}_right_finger_joint_2'.format(self.gripper_name)
+        ]
+        self.fingertip_names = [
+            '{0}_left_fingertip'.format(self.gripper_name),
+            '{0}_right_fingertip'.format(self.gripper_name)
+        ]
+
+    def start(self):
+        self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=1)
+
+if __name__=='__main__':
+    node = RG2_FT_Node()
+    node.start()
+    rospy.spin()
