@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(rg2_ft_description)
+project(rg2_description)
 
 find_package(catkin REQUIRED)
 

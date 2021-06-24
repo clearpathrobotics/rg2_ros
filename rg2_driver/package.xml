@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rg2_ft_driver</name>
+  <name>rg2_driver</name>
   <version>0.0.0</version>
   <description>Driver and launch files for the OnRobot RG2-FT gripper</description>
 
