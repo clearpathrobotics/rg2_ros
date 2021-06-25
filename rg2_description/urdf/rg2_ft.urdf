@@ -58,10 +58,10 @@
       <origin xyz="0 0 ${0.031/2 + 0.0125/2}" rpy="0 0 0" />
     </joint>
 
-    <xacro:rg2_ft_finger prefix="left" parent="${name}_base_link">
+    <xacro:rg2_ft_finger prefix="${name}_left" parent="${name}_base_link">
       <origin xyz="0.138 0.012 0" rpy="0 0 0" />
     </xacro:rg2_ft_finger>
-    <xacro:rg2_ft_finger prefix="right" parent="${name}_base_link">
+    <xacro:rg2_ft_finger prefix="${name}_right" parent="${name}_base_link">
       <origin xyz="0.138 -0.012 0" rpy="3.14159 0 0" />
     </xacro:rg2_ft_finger>
   </xacro:macro>
