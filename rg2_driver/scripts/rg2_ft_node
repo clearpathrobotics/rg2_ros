@@ -3,18 +3,29 @@
 Main driver node for the OnRobot RG2-FT gripper
 """
 
+# ros imports
 import rospy
-
 from std_msgs.msg import Header
 from sensor_msgs.msg import JointState
+
+# modbus imports
+from pymodbus.client.sync import ModbusTcpClient
 
 class RG2_FT_Node:
     def __init__(self):
         self.load_rosparams()
 
+        if not self.is_sim:
+            rospy.loginfo('Creating PyModBus interface on {0}...'.format(self.gripper_ip))
+            self.client = ModbusTcpClient(self.gripper_ip)
+        else:
+            rospy.loginfo('Running in simulation mode')
+
     def load_rosparams(self):
         self.gripper_name = rospy.get_param('~name', 'gripper')
-        self.gripepr_ip = rospy.get_param('~ip_address', '192.168.1.1')
+        self.gripper_ip = rospy.get_param('~ip_address', '192.168.1.1')
+
+        self.is_sim = rospy.get_param('~sim', False)
 
         self.base_link_name = '{0}_base_link'.format(self.gripper_name)
         self.joint_names = [
@@ -32,6 +43,8 @@ class RG2_FT_Node:
         self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=1)
 
 if __name__=='__main__':
+    rospy.init_node('rg2_ft_node')
+
     node = RG2_FT_Node()
     node.start()
     rospy.spin()

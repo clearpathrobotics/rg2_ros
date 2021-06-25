@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
-  <xacro:macro name="rg2_ft_finger" params="prefix parent *origin">
+  <xacro:macro name="rg2_ft_finger" params="prefix parent fingertip_offset=1.5707963267948966 *origin">
 
     <link name="${prefix}_finger_link_1">
       <!--
@@ -16,6 +16,8 @@
         </material>
       </visual>
     </link>
+
+    <link name="${prefix}_fingertip_offset_link" />
 
     <link name="${prefix}_finger_link_2">
       <!--
@@ -47,6 +49,13 @@
       </visual>
     </link>
 
+    <gazebo reference="${prefix}_fingertip">
+      <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+        <updateRate>100.0</updateRate>
+        <topicName>${prefix}_fingertip_ft</topicName>
+        <jointName>${prefix}_fingertip_joint</jointName>
+      </plugin>
+    </gazebo>
 
     <joint name="${prefix}_finger_joint_1" type="revolute">
       <axis xyz="0 0 1" />
@@ -56,12 +65,18 @@
       <xacro:insert_block name="origin" />
     </joint>
 
+    <joint name="${prefix}_fingertip_offset_joint" type="fixed">
+      <parent link="${prefix}_finger_link_1" />
+      <child link="${prefix}_fingertip_offset_link" />
+      <origin xyz="0.057 0 0" rpy="0 0 ${fingertip_offset - 1.5707963267948966}"/>
+    </joint>
+
     <joint name="${prefix}_finger_joint_2" type="revolute">
       <axis xyz="0 0 1" />
       <limit lower="-3.14159" upper="3.14159" velocity="2.0" effort="1000" />
-      <parent link="${prefix}_finger_link_1" />
+      <parent link="${prefix}_fingertip_offset_link" />
       <child link="${prefix}_finger_link_2" />
-      <origin xyz="0.057 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
     <joint name="${prefix}_fingertip_joint" type="fixed">

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
-  <xacro:include filename="$(find rg2_ft_description)/urdf/include/rg2_ft_finger.urdf" />
+  <xacro:include filename="$(find rg2_description)/urdf/include/rg2_ft_finger.urdf" />
 
   <xacro:macro name="rg2_ft" params="name parent *origin">
 
