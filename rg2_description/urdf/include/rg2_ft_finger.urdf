@@ -15,6 +15,12 @@
           <color rgba="1 1 1 1" />
         </material>
       </visual>
+      <collision>
+        <geometry>
+          <box size="0.057 0.032 0.027" />
+        </geometry>
+        <origin xyz="0.0285 0.016 0" rpy="0 0 0" />
+      </collision>
     </link>
 
     <link name="${prefix}_fingertip_offset_link" />
@@ -32,6 +38,12 @@
           <color rgba="1 1 1 1" />
         </material>
       </visual>
+      <collision>
+        <geometry>
+          <box size="0.023 0.008 0.012" />
+        </geometry>
+        <origin xyz="0.0115 0.004 0" rpy="0 0 0" />
+      </collision>
     </link>
 
     <link name="${prefix}_fingertip">
@@ -47,6 +59,12 @@
           <color rgba="1 1 1 1" />
         </material>
       </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.0195" radius="0.010" />
+        </geometry>
+        <origin xyz="0 0 -${0.0195/2}" rpy="0 0 0" />
+      </collision>
     </link>
 
     <gazebo reference="${prefix}_fingertip">
