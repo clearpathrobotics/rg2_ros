@@ -1,10 +1,32 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="ip_address"      default="192.168.1.1" />
+  <!--
+    IP address and port for the modbus/TCP connection
+  -->
+  <arg name="ip_address"      default="192.168.131.45" />
+  <arg name="tcp_port"        default="502" />
+
+  <!--
+    modbus address for the device. see connectivity guide for details
+    rg2-f/t should be 65
+  -->
+  <arg name="device_address"  default="65" />
+
+  <!--
+    Name should match the macro's name in the URDF
+  -->
   <arg name="name"            default="gripper" />
 
-  <node name="rg2_ft_node" pkg="rg2_ft_driver" type="rg2_ft_node">
-    <param name="ip_address" value="$(arg ip_address)" />
-    <param name="name"       value="$(arg name)" />
+  <!--
+    Frequency that the joint state of the gripper should be published
+  -->
+  <arg name="rate"           default="10" />
+
+  <node name="rg2_ft_node" pkg="rg2_driver" type="rg2_ft_node">
+    <param name="ip_address"        value="$(arg ip_address)" />
+    <param name="tcp_port"          value="$(arg tcp_port)" />
+    <param name="device_address"    value="$(arg device_address)" />
+    <param name="name"              value="$(arg name)" />
+    <param name="update_rate"       value="$(arg rate)" />
   </node>
 </launch>
