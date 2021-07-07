@@ -12,7 +12,7 @@ The gripper must be connected to the OnRobot Compute Box, which in turn must be 
 using a normal ethernet cable.  The gripper must be powered following the manufacturer's instructions.
 
 
-rg2_ft_description
+rg2_description
 --------------------
 
 This package contains the URDF and supporting files for representing the gripper on a robot.
@@ -32,7 +32,13 @@ supported; the URDF and driver both assume that the fingertip angles are set to 
 in a synchronized fashion.
 
 
-rg2_ft_driver
+rg2_driver
 --------------
 
 This package contains the underlying ROS driver for the gripper.  The driver requires PyModbus.
+
+
+rg2_msgs
+--------------
+
+This package contains additional ROS messages used by the gripper driver.

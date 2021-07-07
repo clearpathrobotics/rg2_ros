@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Main driver node for the OnRobot RG2-FT gripper
 """
@@ -95,11 +95,11 @@ STATUS_CODES = {
 def command_callback(data, controller):
     controller.command_callback(data)
 
+def zero_callback(data, controller):
+    controller.zero_callback(data)
+
 class RG2_FT_Node:
     def __init__(self):
-        """
-
-        """
         self.load_rosparams()
 
         if not self.is_sim:
@@ -111,6 +111,8 @@ class RG2_FT_Node:
             rospy.logerr('Simulation mode isn\' implemented yet!')
             sys.exit(0)
 
+        self.sequence_id = 0
+
 
     def __str__(self):
         if self.is_sim:
@@ -120,6 +122,9 @@ class RG2_FT_Node:
 
 
     def load_rosparams(self):
+        """
+        Read the ROS params and apply them
+        """
         self.gripper_name = rospy.get_param('~name', 'gripper')
         self.gripper_ip = rospy.get_param('~ip_address', '192.168.1.1')
         self.gripper_port = rospy.get_param('~tcp_port', 502)
@@ -145,6 +150,9 @@ class RG2_FT_Node:
 
 
     def connect(self):
+        """
+        Initialize the modbus TCP connection to the gripper
+        """
         self.modbus_lock.acquire()
         if self.client.connect():
             rospy.loginfo('Connected to {0}:{1}'.format(self.gripper_ip, self.gripper_port))
@@ -154,6 +162,9 @@ class RG2_FT_Node:
 
 
     def disconnect(self):
+        """
+        Shutdown the connection to the gripper hardware
+        """
         if not self.is_sim:
             rospy.loginfo('Disconnecting from {0}'.format(self))
             self.modbus_lock.acquire()
@@ -162,6 +173,9 @@ class RG2_FT_Node:
 
 
     def test_connection(self):
+        """
+        Perform a simple diagnostic check on startup by moving the hand through its full range of motion
+        """
         if self.is_sim:
             rospy.loginfo('Running in simulation mode; no connection to test')
             return True
@@ -204,33 +218,55 @@ class RG2_FT_Node:
 
 
     def start(self):
+        """
+        Create the subscribers and publishers, start the background worker threads that poll the gripper
+        """
         self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=1)
         self.grip_width_pub = rospy.Publisher('{0}/width'.format(self.gripper_name), Float32, queue_size=1)
         self.grip_moving_pub = rospy.Publisher('{0}/moving'.format(self.gripper_name), Bool, queue_size=1)
         self.left_fingertip_pub = rospy.Publisher('{0}/left_fingertip'.format(self.gripper_name), WrenchStamped, queue_size=1)
         self.right_fingertip_pub = rospy.Publisher('{0}/right_fingertip'.format(self.gripper_name), WrenchStamped, queue_size=1)
+        self.grip_pub = rospy.Publisher('{0}/grip'.format(self.gripper_name), Bool, queue_size=1)
+        self.zero_pub = rospy.Publisher('{0}/is_zero'.format(self.gripper_name), Bool, queue_size=1)
 
-        joint_state_publisher_thread = Thread(target=self.joint_publisher_thread_fn)
+        joint_state_publisher_thread = Thread(target=self.joint_state_loop_fn)
         joint_state_publisher_thread.start()
 
-        self.command_sub = rospy.Subscriber('{0}/cmd'.format(self.gripper_name), GripperCommand, command_callback, callback_args=self)
+        zero_state_publisher_thread = Thread(target=self.zero_state_loop_fn)
+        zero_state_publisher_thread.start()
+
+        self.command_sub = rospy.Subscriber('{0}/cmd/move'.format(self.gripper_name), GripperCommand, command_callback, callback_args=self)
+        self.zero_sub = rospy.Subscriber('{0}/cmd/zero'.format(self.gripper_name), Bool, zero_callback, callback_args=self)
 
 
-    def joint_publisher_thread_fn(self):
+    def joint_state_loop_fn(self):
         """
-        Background thread that reads the current position of the gripper and publishes the joint state at a fixed rate
+        Background thread that:
+            1) reads the current width of the gripper and publishes that to the width topic
+            2) calculates the current finger joint positions based on the width
+            3) publishes the joint state to tf
+            4) reads and publishes the FT sensor data from each fingertip
+            5) publishes whether or not the fingers are currently moving
+            6) publishes whether or not a grip is detected
+
+        Rate is determined by the update_rate parameter
         """
 
         while not rospy.is_shutdown():
             self.update_rate.sleep()
+            sef.sequence_id = self.sequence_id+1
+
+            # read the width from the gripper and publish it + do the IK calculates to publish joint states
+            # reads 3 consecutive registers: the actual gripper width, the is-moving flag, and the is-gripped flag
             self.modbus_lock.acquire()
-            response = self.client.read_input_registers(address=RG2_FT_REGISTERS['actual_gripper_width'], count=2, unit=self.gripper_address)
+            response = self.client.read_input_registers(address=RG2_FT_REGISTERS['actual_gripper_width'], count=3, unit=self.gripper_address)
             self.modbus_lock.release()
 
             if not response.isError():
                 mm = register_to_signed_int(response.registers[0]) * 0.1
                 m = mm * 0.001
                 moving = response.registers[1] != 0
+                gripped = response.registers[2] != 0
 
                 angles = self.do_ik_calculations(mm)
 
@@ -245,24 +281,49 @@ class RG2_FT_Node:
                 states.velocity = [0.0, 0.0, 0.0, 0.0]
                 states.header = Header()
                 states.header.stamp = rospy.Time.now()
+                states.header.seq = self.sequence_id
                 self.joint_state_pub.publish(states)
 
                 is_moving = Bool()
                 is_moving.data = moving
                 self.grip_moving_pub.publish(is_moving)
 
+                is_gripped = Bool()
+                is_gripped.data = gripped
+                self.grip_pub.publish(is_gripped)
+
             else:
                 rospy.logwarn("Failed to read gripper state: {0}".format(response))
 
+            # Read & publish the left & right FT sensor data
             self.modbus_lock.acquire()
             response = self.client.read_input_registers(address=RG2_FT_REGISTERS['fx_l'], count=6, unit=self.gripper_address)
             self.modbus_lock.release()
             self.publish_finger(self.left_fingertip_pub, response, '{0}_left_fingertip'.format(self.gripper_name))
-
             self.modbus_lock.acquire()
             response = self.client.read_input_registers(address=RG2_FT_REGISTERS['fx_r'], count=6, unit=self.gripper_address)
             self.modbus_lock.release()
             self.publish_finger(self.right_fingertip_pub, response, '{0}_right_fingertip'.format(self.gripper_name))
+
+
+    def zero_state_loop_fn(self):
+        """
+        Publishes whether or not the sensors are zero'd at 1Hz
+        """
+
+        rate = rospy.Rate(1)
+
+        while not rospy.is_shutdown():
+            rate.sleep()
+
+            self.modbus_lock.acquire()
+            response = self.client.read_input_registers(address=RG2_FT_REGISTERS['zero'], count=1, unit=self.gripper_address)
+            self.modbus_lock.release()
+            if not response.isError():
+                zero = response.registers[0] != 0
+                is_zero = Bool()
+                is_zero.data = zero
+                self.zero_pub.publish(is_zero)
 
 
     def do_ik_calculations(self, distance_mm):
@@ -293,7 +354,12 @@ class RG2_FT_Node:
         return [finger_angle, -finger_angle, finger_angle, -finger_angle]
 
 
-    def publish_finger(self, topic, response, frame):
+    def publish_finger(self, publisher, response, frame):
+        """
+        Publish a stamped wrench on the provided publisher, given the frame ID and modbus response
+        The response must have 6 registers, corresponding to: [Fx, Fy, Fz, Tx, Ty, Tz], all signed 16-bit ints,
+        in 0.1N or 0.01Nm, as appropriate for Force or Torque.
+        """
         if response.isError():
             rospy.logwarn("Failed to read fingertip sensor data: {0}".format(response))
             return
@@ -319,8 +385,10 @@ class RG2_FT_Node:
         msg.header = Header()
         msg.header.stamp = rospy.Time.now()
         msg.header.frame_id = frame
+        msg.header.seq = self.sequence_id
 
-        topic.publish(msg)
+        publisher.publish(msg)
+
 
     def command_callback(self, data):
         """
@@ -356,6 +424,20 @@ class RG2_FT_Node:
             response = self.client.write_registers(unit=self.gripper_address,
                 address = RG2_FT_REGISTERS['target_force'], values = [force, width, 1])
             self.modbus_lock.release()
+
+
+    def zero_callback(self, data):
+        """
+        Write 1 to the zero register if we are zeroing the sensors, otherwise write 0 to the zero register
+        Yes, that's terribly confusing, and I'm sorry you had to read that.  I didn't name the registers or
+        come up with the modbus protocol
+        """
+        is_zero = data.data
+        self.modbus_lock.acquire()
+        response = self.client.write_registers(unit=self.gripper_address,
+            address = RG2_FT_REGISTERS['zero'], values = [0 if not is_zero else 1])
+        self.modbus_lock.release()
+
 
 def register_to_signed_int(x, base=16):
     """
