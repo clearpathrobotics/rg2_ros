@@ -16,7 +16,7 @@ from geometry_msgs.msg import Vector3, Wrench, WrenchStamped
 from pymodbus.client.sync import ModbusTcpClient
 
 # threading to deal with background tasks
-from threading import Thread
+from threading import Lock, Thread
 
 import math
 
@@ -105,6 +105,7 @@ class RG2_FT_Node:
         if not self.is_sim:
             rospy.loginfo('Creating PyModBus interface for {0}'.format(self))
             self.client = ModbusTcpClient(self.gripper_ip, port=self.gripper_port)
+            self.modbus_lock = Lock()
         else:
             rospy.loginfo('Running in simulation mode')
             rospy.logerr('Simulation mode isn\' implemented yet!')
@@ -144,16 +145,20 @@ class RG2_FT_Node:
 
 
     def connect(self):
+        self.modbus_lock.acquire()
         if self.client.connect():
             rospy.loginfo('Connected to {0}:{1}'.format(self.gripper_ip, self.gripper_port))
         else:
             rospy.logerr('Failed to connect to {0}'.format(self.gripper_ip))
+        self.modbus_lock.release()
 
 
     def disconnect(self):
         if not self.is_sim:
             rospy.loginfo('Disconnecting from {0}'.format(self))
+            self.modbus_lock.acquire()
             self.client.close()
+            self.modbus_lock.release()
 
 
     def test_connection(self):
@@ -161,6 +166,8 @@ class RG2_FT_Node:
             rospy.loginfo('Running in simulation mode; no connection to test')
             return True
         else:
+            self.modbus_lock.acquire()
+
             # try reading a value from the gripper to make sure it works
             response = self.client.readwrite_registers(
                 read_address=RG2_FT_REGISTERS['actual_gripper_width'], read_count=1,
@@ -193,6 +200,8 @@ class RG2_FT_Node:
                     response = self.client.read_input_registers(address=RG2_FT_REGISTERS['gripper_busy'], count=1, unit=self.gripper_address)
                     is_moving = not response.isError() and response.registers[0] != 0
 
+            self.modbus_lock.release()
+
 
     def start(self):
         self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=1)
@@ -214,7 +223,9 @@ class RG2_FT_Node:
 
         while not rospy.is_shutdown():
             self.update_rate.sleep()
+            self.modbus_lock.acquire()
             response = self.client.read_input_registers(address=RG2_FT_REGISTERS['actual_gripper_width'], count=2, unit=self.gripper_address)
+            self.modbus_lock.release()
 
             if not response.isError():
                 mm = register_to_signed_int(response.registers[0]) * 0.1
@@ -243,9 +254,14 @@ class RG2_FT_Node:
             else:
                 rospy.logwarn("Failed to read gripper state: {0}".format(response))
 
+            self.modbus_lock.acquire()
             response = self.client.read_input_registers(address=RG2_FT_REGISTERS['fx_l'], count=6, unit=self.gripper_address)
+            self.modbus_lock.release()
             self.publish_finger(self.left_fingertip_pub, response, '{0}_left_fingertip'.format(self.gripper_name))
+
+            self.modbus_lock.acquire()
             response = self.client.read_input_registers(address=RG2_FT_REGISTERS['fx_r'], count=6, unit=self.gripper_address)
+            self.modbus_lock.release()
             self.publish_finger(self.right_fingertip_pub, response, '{0}_right_fingertip'.format(self.gripper_name))
 
 
@@ -312,7 +328,9 @@ class RG2_FT_Node:
         Can also stop the gripper if the stop flag is True
         """
         if data.stop:
+            self.modbus_lock.acquire()
             response = self.client.write_registers(address=RG2_FT_REGISTERS['control'], values=[0], unit=self.gripper_address)
+            self.modbus_lock.release()
 
             if response.isError():
                 rospy.logwarn("Failed to stop gripper: {0}".format(response))
@@ -334,8 +352,10 @@ class RG2_FT_Node:
                 rospy.logwarn('Desired width is too small')
                 width = 0
 
+            self.modbus_lock.acquire()
             response = self.client.write_registers(unit=self.gripper_address,
                 address = RG2_FT_REGISTERS['target_force'], values = [force, width, 1])
+            self.modbus_lock.release()
 
 def register_to_signed_int(x, base=16):
     """
