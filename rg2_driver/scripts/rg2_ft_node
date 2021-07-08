@@ -131,7 +131,14 @@ class RG2_FT_Node:
         self.gripper_address = rospy.get_param('~device_address', 65)
 
         # convert the rate to an actual Rate object we can use to control timing
+        # clamp the rate between 1 and 125Hz, based on the modbus spec
         self.update_rate = rospy.get_param('~update_rate', 10)
+        if self.update_rate < 1:
+            rospy.logwarn("Update rate should not be lower than 1Hz")
+            self.update_rate = 1
+        elif self.update_rate > 125:
+            rospy.logwarn("Modbus TCP cannot go faster than 125Hz")
+            self.update_rate = 125
         self.update_rate = rospy.Rate(self.update_rate)
 
         self.is_sim = rospy.get_param('~sim', False)
