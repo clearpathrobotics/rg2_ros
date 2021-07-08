@@ -1,0 +1,6 @@
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find rg2_description)/urdf/rg2_ft.urdf" />
+  <xacro:rg2_ft name="gripper" parent="mid_mount">
+    <origin xyz="0 0.5 0" rpy="0 0 0" />
+  </xacro:rg2_ft>
+</robot>

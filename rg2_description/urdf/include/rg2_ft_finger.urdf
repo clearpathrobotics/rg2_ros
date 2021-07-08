@@ -103,5 +103,20 @@
       <origin xyz="0.023 -0.012 0" rpy="0 1.5707963267948966 -1.5707963267948966" />
     </joint>
 
+    <!--
+      Add a Force-Torque sensor to the fingertip
+    -->
+    <gazebo reference="joint_name">
+      <sensor name="${prefix}_fingertip_ft_sensor" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>100.0</update_rate>
+        <visualize>true</visualize>
+        <force_torque>
+          <frame>${prefix}_fingertip</frame>
+          <measure_direction>child_to_parent</measure_direction>
+        </force_torque>
+      </sensor>
+    </gazebo>
+
   </xacro:macro>
 </robot>

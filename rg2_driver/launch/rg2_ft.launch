@@ -22,11 +22,17 @@
   -->
   <arg name="rate"           default="10" />
 
+  <!--
+    Are we running in simulation mode?
+  -->
+  <arg name="sim"            default="false" />
+
   <node name="rg2_ft_node" pkg="rg2_driver" type="rg2_ft_node">
     <param name="ip_address"        value="$(arg ip_address)" />
     <param name="tcp_port"          value="$(arg tcp_port)" />
     <param name="device_address"    value="$(arg device_address)" />
     <param name="name"              value="$(arg name)" />
     <param name="update_rate"       value="$(arg rate)" />
+    <param name="sim"               value="$(arg sim)" />
   </node>
 </launch>
