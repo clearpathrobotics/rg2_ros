@@ -20,7 +20,7 @@
   <!--
     Frequency that the joint state of the gripper should be published
   -->
-  <arg name="rate"           default="10" />
+  <arg name="rate"           default="50" />
 
   <!--
     Are we running in simulation mode?
