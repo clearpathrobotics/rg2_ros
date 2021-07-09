@@ -208,7 +208,7 @@ class RG2_FT_Node:
                 states.velocity = [0.0, 0.0, 0.0, 0.0]
                 states.header = Header()
                 states.header.stamp = rospy.Time.now()
-                states.header.seq = self.sequence_id
+                #states.header.seq = self.sequence_id
                 self.joint_state_pub.publish(states)
 
                 is_moving = Bool()
