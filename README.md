@@ -37,6 +37,39 @@ rg2_driver
 
 This package contains the underlying ROS driver for the gripper.  The driver requires PyModbus.
 
+To open/close the gripper, publish to the ``gripper/cmd/move`` topic:
+
+```bash
+rostopic pub /gripper/cmd/move rg2_msgs/GripperCommand "force_n: 40.0
+width_mm: 85.0
+stop: false" -1
+```
+
+When moving the gripper the force must be set high enough to overcome the inertia of the fingers.  Generally 10N or more
+is sufficient.  The width can be specified anywhere from 0mm to 100mm.  If the ``stop`` parameter is true, the gripper
+will immediately stop moving, regardless of the goal with and force.
+
+The FT sensors in the fingertips can be zeroed/un-zeroed by publishing to the ``gripper/cmd/zero`` topic:
+
+```bash
+rostopic pub /gripper/cmd/zero std_msgs/Bool "data: true" -1
+```
+
+The ``gripper/is_zero`` topic publishes whether or not the sensors are currently zeroed.
+
+The gripper's actual width, as determined by the hardware encoder, is published to the ``gripper/width`` topic.
+
+The modbus TCP protocol the gripper implements prevents it from receiving new commands until the previous one finishes.
+The ``gripper/moving`` topic publishes ``true``while the gripper is moving, indicating it cannot receive new commands.
+
+Finally, the FT sensor data from each fingertip is published as a sensor_msgs/WrenchStamped message on the
+``gripper/left_fingertip`` and ``gripper/right_fingertip`` topics.  The coordinate frames of these topics are aligned
+to match the XYZ labels on the physical gripper (+Y is away from the wrist, +Z is along the open direction).
+
+The modbus TCP protocol has a theoretical upper bound of 125Hz.  The driver in its default state queries the position
+and sensor data from the gripper at a rate of 50Hz. This can be modified by editing the ``rate`` argument of
+``rg2_ft.launch``
+
 
 rg2_msgs
 --------------
