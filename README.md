@@ -5,6 +5,11 @@ This repository contains ROS packages needed for using the OnRobot RG2-F/T gripp
 
 ![RG2-FT URDF](doc/rg2_ft_urdf.png "The RG2-FT URDF")
 
+
+NOTE: This repository is not being actively maintained.  Bug-reports and pull-requests are welcome, but there are some
+notable gaps in the packages' capabilities which are not planned to be addressed in the foreseeable future.
+
+
 Physical Installation
 -----------------------
 
@@ -75,3 +80,16 @@ rg2_msgs
 --------------
 
 This package contains additional ROS messages used by the gripper driver.
+
+
+Future Work & Limitation
+---------------------------
+
+Currently this driver works with the RG2-F/T gripper.  It has not been tested with any other grippers.  Limited support
+for the RG2 may be available via the `ur10_rg2_ros` package referenced earlier.
+
+If you have another OnRobot gripper and would like to either fork this repository to expand the supported devices, or
+submit a PR please feel free to do so.
+
+The simulation parameters of the gripper have not been exhaustively tested.  The intent of the URDF macro is primarily
+to provide visual feedback of a physical robot's state in Rviz, and not to provide accurate simulation inside Gazebo.
